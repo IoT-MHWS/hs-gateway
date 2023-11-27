@@ -1,0 +1,15 @@
+server:
+  port: 8762
+
+eureka:
+  instance:
+    appname: gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URI:http://localhost:8761/eureka}
