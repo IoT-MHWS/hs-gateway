@@ -11,4 +11,4 @@ services:
     ports:
       - ${HS_GATEWAY_PORT:-8762}:8762
     environment:
-      EUREKA_URI: http://eureka:8761/eureka
+      HS_GATEWAY_EUREKA_URI: http://eureka:8761/eureka
