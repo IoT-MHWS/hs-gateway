@@ -1,0 +1,141 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: zubrailx
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            tableName: artist
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id
+                  type: BIGSERIAL
+              - column:
+                  name: name
+                  constraints:
+                    nullable: false
+                  type: VARCHAR(255)
+              - column:
+                  name: style
+                  constraints:
+                    nullable: false
+                  type: VARCHAR(255)
+              - column:
+                  name: year_of_birth
+                  type: INT
+              - column:
+                  name: bio
+                  type: TEXT
+        - createTable:
+            tableName: exhibition
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id
+                  type: BIGSERIAL
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: start_date
+                  type: DATETIME
+              - column:
+                  constraints:
+                    nullable: false
+                  name: end_date
+                  type: DATETIME
+              - column:
+                  name: gallery_id
+                  type: BIGINT
+        - createTable:
+            tableName: gallery
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id
+                  type: BIGSERIAL
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name
+                  type: VARCHAR(255)
+              - column:
+                  name: address
+                  type: VARCHAR(255)
+        - createTable:
+            tableName: gallery_painting
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id
+                  type: BIGSERIAL
+              - column:
+                  constraints:
+                    nullable: false
+                  name: gallery_id
+                  type: BIGSERIAL
+              - column:
+                  constraints:
+                    nullable: false
+                  name: painting_id
+                  type: BIGINT
+              - column:
+                  name: description
+                  type: TEXT
+        - createTable:
+            tableName: painting
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                  name: id
+                  type: BIGSERIAL
+              - column:
+                  constraints:
+                    nullable: false
+                  name: name
+                  type: VARCHAR(255)
+              - column:
+                  name: year_of_creation
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: artist_id
+                  type: BIGINT
+        - addForeignKeyConstraint:
+            baseColumnNames: gallery_id
+            baseTableName: exhibition
+            constraintName: fk_exhibition_on_gallery
+            referencedColumnNames: id
+            referencedTableName: gallery
+        - addForeignKeyConstraint:
+            baseColumnNames: gallery_id
+            baseTableName: gallery_painting
+            constraintName: fk_gallery_painting_on_gallery
+            referencedColumnNames: id
+            referencedTableName: gallery
+        - addForeignKeyConstraint:
+            baseColumnNames: painting_id
+            baseTableName: gallery_painting
+            constraintName: fk_gallery_painting_on_painting
+            referencedColumnNames: id
+            referencedTableName: painting
+        - addForeignKeyConstraint:
+            baseColumnNames: artist_id
+            baseTableName: painting
+            constraintName: fk_painting_on_artist
+            referencedColumnNames: id
+            referencedTableName: artist

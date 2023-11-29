@@ -1,0 +1,90 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3
+      author: zubrailx
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - insert:
+            tableName: role
+            columns:
+              - column:
+                  name: id
+                  value: 3
+              - column:
+                  name: name
+                  value: "PUBLIC"
+        - insert:
+            tableName: role
+            columns:
+              - column:
+                  name: id
+                  value: 2
+              - column:
+                  name: name
+                  value: "MODERATOR"
+        - insert:
+            tableName: role
+            columns:
+              - column:
+                  name: id
+                  value: 1
+              - column:
+                  name: name
+                  value: "ADMIN"
+        - insert:
+            tableName: role
+            columns:
+              - column:
+                  name: id
+                  value: 0
+              - column:
+                  name: name
+                  value: "SUPERVISOR"
+        - insert:
+            tableName: user
+            columns:
+              - column:
+                  name: id
+                  value: 0
+              - column:
+                  name: login
+                  value: "root"
+              - column:
+                  name: password
+                  value: "$2a$10$TzWL5Ev0J9dK8Q/MbZtcAOWhiN0wZ7zI/BS4vk7qjc9gxk6Oxwdye"
+        - insert:
+            tableName: user_role
+            columns:
+              - column:
+                  name: user_id
+                  value: 0
+              - column:
+                  name: role_id
+                  value: 0
+        - insert:
+            tableName: user_role
+            columns:
+              - column:
+                  name: user_id
+                  value: 0
+              - column:
+                  name: role_id
+                  value: 1
+        - insert:
+            tableName: user_role
+            columns:
+              - column:
+                  name: user_id
+                  value: 0
+              - column:
+                  name: role_id
+                  value: 2
+        - insert:
+            tableName: user_role
+            columns:
+              - column:
+                  name: user_id
+                  value: 0
+              - column:
+                  name: role_id
+                  value: 3
