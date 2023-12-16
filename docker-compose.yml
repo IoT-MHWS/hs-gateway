@@ -111,6 +111,7 @@ services:
     build:
       context: .
       dockerfile: dockerfile
+    image: ${HS_GATEWAY_IMAGE:-mhws/hs-gateway:latest}
     ports:
       - ${HS_GATEWAY_PORT:-8370}:8762
     environment:
