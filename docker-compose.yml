@@ -21,11 +21,18 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./services/postgres/entrypoint/:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d db_user && pg_isready -d db_cms" ]
+      start_period: 60s
+      interval: 10s
+      timeout: 60s
+      retries: 5
 
   liquibase-user:
     image: liquibase/liquibase:4.24-alpine
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       LIQUIBASE_COMMAND_USERNAME: ${HS_USER_POSTGRES_USERNAME:-hs}
       LIQUIBASE_COMMAND_PASSWORD: ${HS_USER_POSTGRES_PASSWORD:-example}
@@ -37,6 +44,9 @@ services:
 
   hs-user:
     image: ${HS_USER_IMAGE:-mhws/hs-user:latest}
+    depends_on:
+      liquibase-user:
+        condition: service_completed_successfully
     environment:
       HS_USER_EUREKA_URI: http://eureka:8761/eureka
       HS_USER_DATASOURCE_HOST: postgres
@@ -50,7 +60,8 @@ services:
   liquibase-cms:
     image: liquibase/liquibase:4.24-alpine
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       LIQUIBASE_COMMAND_USERNAME: ${HS_CMS_POSTGRES_USERNAME:-hs}
       LIQUIBASE_COMMAND_PASSWORD: ${HS_CMS_POSTGRES_PASSWORD:-example}
@@ -75,6 +86,9 @@ services:
 
   hs-cms:
     image: ${HS_CMS_IMAGE:-mhws/hs-cms:latest}
+    depends_on:
+      liquibase-cms:
+        condition: service_completed_successfully
     environment:
       HS_CMS_EUREKA_URI: http://eureka:8761/eureka
       HS_CMS_DATASOURCE_HOST: postgres
