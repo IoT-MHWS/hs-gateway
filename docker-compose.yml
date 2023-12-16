@@ -2,7 +2,7 @@ services:
   eureka:
     image: ${HS_EUREKA_IMAGE:-mhws/hs-eureka:latest}
     ports:
-      - ${HS_EUREKA_PORT:-8761}:8761
+      - ${HS_EUREKA_PORT:-8375}:8761
 
   postgres:
     image: postgres:16.0-alpine
@@ -98,7 +98,7 @@ services:
       context: .
       dockerfile: dockerfile
     ports:
-      - ${HS_GATEWAY_PORT:-8762}:8762
+      - ${HS_GATEWAY_PORT:-8370}:8762
     environment:
       HS_GATEWAY_EUREKA_URI: http://eureka:8761/eureka
 
