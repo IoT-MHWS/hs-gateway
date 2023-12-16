@@ -4,15 +4,6 @@ services:
     ports:
       - ${HS_EUREKA_PORT:-8761}:8761
 
-  gateway:
-    build:
-      context: .
-      dockerfile: dockerfile
-    ports:
-      - ${HS_GATEWAY_PORT:-8762}:8762
-    environment:
-      HS_GATEWAY_EUREKA_URI: http://eureka:8761/eureka
-
   postgres:
     image: postgres:16.0-alpine
     environment:
@@ -44,6 +35,18 @@ services:
       - ./services/liquibase/liquibase.user.properties:/liquibase/liquibase.properties
     command: --defaults-file=/liquibase/liquibase.properties update
 
+  hs-user:
+    image: ${HS_USER_IMAGE:-mhws/hs-user:latest}
+    environment:
+      HS_USER_EUREKA_URI: http://eureka:8761/eureka
+      HS_USER_DATASOURCE_HOST: postgres
+      HS_USER_DATASOURCE_PORT: 5432
+      HS_USER_DATASOURCE_DATABASE: db_user
+      HS_USER_DATASOURCE_USERNAME: ${HS_USER_POSTGRES_USERNAME}
+      HS_USER_DATASOURCE_PASSWORD: ${HS_USER_POSTGRES_PASSWORD}
+      HS_USER_JWT_SECRET_KEY: ${HS_USER_JWT_SECRET_KEY}
+      HS_USER_JWT_EXPIRATION: ${HS_USER_JWT_EXPIRATION}
+
   liquibase-cms:
     image: liquibase/liquibase:4.24-alpine
     depends_on:
@@ -70,18 +73,6 @@ services:
       - ./services/liquibase/liquibase.box-office.properties:/liquibase/liquibase.properties
     command: --defaults-file=/liquibase/liquibase.properties update
 
-  hs-user:
-    image: ${HS_USER_IMAGE:-mhws/hs-user:latest}
-    environment:
-      HS_USER_EUREKA_URI: http://eureka:8761/eureka
-      HS_USER_DATASOURCE_HOST: postgres
-      HS_USER_DATASOURCE_PORT: 5432
-      HS_USER_DATASOURCE_DATABASE: db_user
-      HS_USER_DATASOURCE_USERNAME: ${HS_USER_POSTGRES_USERNAME}
-      HS_USER_DATASOURCE_PASSWORD: ${HS_USER_POSTGRES_PASSWORD}
-      HS_USER_JWT_SECRET_KEY: ${HS_USER_JWT_SECRET_KEY}
-      HS_USER_JWT_EXPIRATION: ${HS_USER_JWT_EXPIRATION}
-
   hs-cms:
     image: ${HS_CMS_IMAGE:-mhws/hs-cms:latest}
     environment:
@@ -101,6 +92,15 @@ services:
       HS_BOX_OFFICE_DATASOURCE_DATABASE: db_box_office
       HS_BOX_OFFICE_DATASOURCE_USERNAME: ${HS_BOX_POSTGRES_USERNAME}
       HS_BOX_OFFICE_DATASOURCE_PASSWORD: ${HS_BOX_POSTGRES_PASSWORD}
+
+  gateway:
+    build:
+      context: .
+      dockerfile: dockerfile
+    ports:
+      - ${HS_GATEWAY_PORT:-8762}:8762
+    environment:
+      HS_GATEWAY_EUREKA_URI: http://eureka:8761/eureka
 
 volumes:
   postgres-data:
