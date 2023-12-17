@@ -12,8 +12,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import artgallery.geteway.client.UserServiceClient;
-import artgallery.geteway.dto.UserDetailsDTO;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import reactor.core.publisher.Mono;
 
 @Component
