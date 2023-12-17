@@ -2,8 +2,6 @@ server:
   port: 8762
 
 eureka:
-  instance:
-    appname: gateway
   cloud:
     gateway:
       discovery:
@@ -26,53 +24,90 @@ logging:
     io.github.resilience4j: debug
 
 spring:
+  application:
+    name: gateway
   cloud:
     gateway:
       routes:
-        - id: auth
+        - id: user-auth
           uri: lb://user
           predicates:
             - Path=/api/v1/auth/**
 
-        - id: user
+        - id: user-user
           uri: lb://user
           predicates:
             - Path=/api/v1/users/**
 
-        - id: artists
+        - id: user-openapi
+          uri: lb://user
+          predicates:
+            - Path=/user/api-docs
+          filters:
+            - RewritePath=/user/(?<path>.*), /$\{path}
+
+        - id: cms-artists
           uri: lb://cms
           predicates:
             - Path=/api/v1/artists/**
           filters:
             - AuthFilter
 
-        - id: exhibitions
+        - id: cms-exhibitions
           uri: lb://cms
           predicates:
             - Path=/api/v1/exhibitions/**
           filters:
             - AuthFilter
 
-        - id: galleries
+        - id: cms-galleries
           uri: lb://cms
           predicates:
             - Path=/api/v1/galleries/**
           filters:
             - AuthFilter
 
-        - id: paintings
+        - id: cms-paintings
           uri: lb://cms
           predicates:
             - Path=/api/v1/paintings/**
           filters:
             - AuthFilter
     
-        - id: recs
+        - id: cms-recs
           uri: lb://cms
           predicates:
             - Path=/api/v1/recs/**
           filters:
             - AuthFilter
+
+        - id: cms-openapi
+          uri: lb://cms
+          predicates:
+            - Path=/cms/api-docs
+          filters:
+            - RewritePath=/cms/(?<path>.*), /$\{path}
+
+        - id:
+          uri: lb://box-office
+          predicates:
+            - Path=/api/v1/orders/**
+          filters:
+            - AuthFilter
+
+        - id:
+          uri: lb://box-office
+          predicates:
+            - Path=/api/v1/tickets/**
+          filters:
+            - AuthFilter
+
+        - id: cms-openapi
+          uri: lb://box-office
+          predicates:
+            - Path=/box-office/api-docs
+          filters:
+            - RewritePath=/box-office/(?<path>.*), /$\{path}
 
 # logging:
 #   level:
