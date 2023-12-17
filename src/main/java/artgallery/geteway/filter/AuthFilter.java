@@ -1,5 +1,6 @@
 package artgallery.geteway.filter;
 
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -14,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import artgallery.geteway.client.UserServiceClient;
 import reactor.core.publisher.Mono;
 
+@Slf4j
 @Component
 public class AuthFilter extends AbstractGatewayFilterFactory<AuthFilter.Config> {
 
@@ -35,6 +37,7 @@ public class AuthFilter extends AbstractGatewayFilterFactory<AuthFilter.Config> 
         return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "token is not specified"));
       }
       return userServiceClient.getUserDetails(token)
+          .doOnError(exc -> log.error(exc.getMessage()))
           .flatMap(details -> {
             exchange.getRequest().mutate()
                 .header("X-User-Id", details.getId().toString())

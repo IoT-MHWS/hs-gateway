@@ -21,7 +21,7 @@ public interface UserServiceClient {
   Mono<UserDetailsDTO> getUserDetails(@RequestHeader(HttpHeaders.AUTHORIZATION) String header);
 
   default Mono<UserDetailsDTO> fallback(String token, Exception ex) {
-    return Mono.error(new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "circuit breaker"));
+    return Mono.error(new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, ex.getMessage()));
   }
 
 }
