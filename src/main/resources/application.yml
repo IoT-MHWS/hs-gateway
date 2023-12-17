@@ -18,11 +18,6 @@ reactive:
       breaker:
         enabled: false
 
-logging:
-  level:
-    org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping: trace
-    io.github.resilience4j: debug
-
 spring:
   application:
     name: gateway
@@ -113,3 +108,6 @@ spring:
 #   level:
 #     org.springframework.cloud.gateway: DEBUG
 #     reactor.netty.http.client: DEBUG
+#    org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping: trace
+#    io.github.resilience4j: debug
+
