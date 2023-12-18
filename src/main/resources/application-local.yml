@@ -24,22 +24,22 @@ spring:
   cloud:
     gateway:
       routes:
-        - id: user-auth
-          uri: lb://user
+        - id: users-auth
+          uri: lb://users
           predicates:
             - Path=/api/v1/auth/**
 
-        - id: user-user
-          uri: lb://user
+        - id: users-users
+          uri: lb://users
           predicates:
             - Path=/api/v1/users/**
 
-        - id: user-openapi
-          uri: lb://user
+        - id: users-openapi
+          uri: lb://users
           predicates:
-            - Path=/user/api-docs
+            - Path=/users/api-docs
           filters:
-            - RewritePath=/user/(?<path>.*), /$\{path}
+            - RewritePath=/users/(?<path>.*), /$\{path}
 
         - id: cms-artists
           uri: lb://cms

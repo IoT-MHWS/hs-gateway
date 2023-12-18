@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.server.ResponseStatusException;
 
-import artgallery.geteway.client.UserServiceClient;
+import artgallery.geteway.client.UsersServiceClient;
 import reactor.core.publisher.Mono;
 
 @Slf4j
@@ -21,11 +21,11 @@ public class AuthFilter extends AbstractGatewayFilterFactory<AuthFilter.Config> 
 
   final Logger logger = LoggerFactory.getLogger(AuthFilter.class);
 
-  private final UserServiceClient userServiceClient;
+  private final UsersServiceClient usersServiceClient;
 
-  public AuthFilter(@Lazy UserServiceClient userServiceClient) {
+  public AuthFilter(@Lazy UsersServiceClient usersServiceClient) {
     super(Config.class);
-    this.userServiceClient = userServiceClient;
+    this.usersServiceClient = usersServiceClient;
   }
 
   @Override
@@ -36,7 +36,7 @@ public class AuthFilter extends AbstractGatewayFilterFactory<AuthFilter.Config> 
       if (!StringUtils.hasText(token)) {
         return Mono.error(new ResponseStatusException(HttpStatus.UNAUTHORIZED, "token is not specified"));
       }
-      return userServiceClient.getUserDetails(token)
+      return usersServiceClient.getUserDetails(token)
           .doOnError(exc -> log.error(exc.getMessage()))
           .flatMap(details -> {
             exchange.getRequest().mutate()
