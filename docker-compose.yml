@@ -71,19 +71,6 @@ services:
       - ./services/liquibase/liquibase.cms.properties:/liquibase/liquibase.properties
     command: --defaults-file=/liquibase/liquibase.properties update
 
-  liquibase-box:
-    image: liquibase/liquibase:4.24-alpine
-    depends_on:
-      - postgres
-    environment:
-      LIQUIBASE_COMMAND_USERNAME: ${HS_BOX_POSTGRES_USERNAME:-hs}
-      LIQUIBASE_COMMAND_PASSWORD: ${HS_BOX_POSTGRES_PASSWORD:-example}
-      LIQUIBASE_COMMAND_URL : jdbc:postgresql://postgres:5432/db_box_office
-    volumes:
-      - ./services/liquibase/changelog:/liquibase/changelog
-      - ./services/liquibase/liquibase.box-office.properties:/liquibase/liquibase.properties
-    command: --defaults-file=/liquibase/liquibase.properties update
-
   hs-cms:
     image: ${HS_CMS_IMAGE:-mhws/hs-cms:latest}
     depends_on:
@@ -96,6 +83,19 @@ services:
       HS_CMS_DATASOURCE_DATABASE: db_cms
       HS_CMS_DATASOURCE_USERNAME: ${HS_CMS_POSTGRES_USERNAME:-hs}
       HS_CMS_DATASOURCE_PASSWORD: ${HS_CMS_POSTGRES_PASSWORD:-example}
+
+  liquibase-box:
+    image: liquibase/liquibase:4.24-alpine
+    depends_on:
+      - postgres
+    environment:
+      LIQUIBASE_COMMAND_USERNAME: ${HS_BOX_POSTGRES_USERNAME:-hs}
+      LIQUIBASE_COMMAND_PASSWORD: ${HS_BOX_POSTGRES_PASSWORD:-example}
+      LIQUIBASE_COMMAND_URL : jdbc:postgresql://postgres:5432/db_box_office
+    volumes:
+      - ./services/liquibase/changelog:/liquibase/changelog
+      - ./services/liquibase/liquibase.box-office.properties:/liquibase/liquibase.properties
+    command: --defaults-file=/liquibase/liquibase.properties update
 
   hs-box:
     image: ${HS_BOX_IMAGE:-mhws/hs-box:latest}
