@@ -2,95 +2,100 @@ services:
   eureka:
     image: ${HS_EUREKA_IMAGE:-mhws/hs-eureka:latest}
     ports:
-      - ${HS_EUREKA_PORT:-8761}:8761
-
-  gateway:
-    build:
-      context: .
-      dockerfile: dockerfile
-    ports:
-      - ${HS_GATEWAY_PORT:-8762}:8762
-    environment:
-      HS_GATEWAY_EUREKA_URI: http://eureka:8761/eureka
+      - ${HS_EUREKA_PORT:-8375}:8761
 
   postgres:
     image: postgres:16.0-alpine
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-example}
       HS_USER_POSTGRES_DATABASE: db_user
-      HS_USER_POSTGRES_USERNAME: ${HS_USER_POSTGRES_USERNAME}
-      HS_USER_POSTGRES_PASSWORD: ${HS_USER_POSTGRES_PASSWORD}
+      HS_USER_POSTGRES_USERNAME: ${HS_USER_POSTGRES_USERNAME:-hs}
+      HS_USER_POSTGRES_PASSWORD: ${HS_USER_POSTGRES_PASSWORD:-example}
       HS_CMS_POSTGRES_DATABASE: db_cms
-      HS_CMS_POSTGRES_USERNAME: ${HS_CMS_POSTGRES_USERNAME}
-      HS_CMS_POSTGRES_PASSWORD: ${HS_CMS_POSTGRES_PASSWORD}
+      HS_CMS_POSTGRES_USERNAME: ${HS_CMS_POSTGRES_USERNAME:-hs}
+      HS_CMS_POSTGRES_PASSWORD: ${HS_CMS_POSTGRES_PASSWORD:-example}
       HS_BOX_POSTGRES_DATABASE: db_box_office
-      HS_BOX_POSTGRES_USERNAME: ${HS_BOX_POSTGRES_USERNAME}
-      HS_BOX_POSTGRES_PASSWORD: ${HS_BOX_POSTGRES_PASSWORD}
+      HS_BOX_POSTGRES_USERNAME: ${HS_BOX_POSTGRES_USERNAME:-hs}
+      HS_BOX_POSTGRES_PASSWORD: ${HS_BOX_POSTGRES_PASSWORD:-example}
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./services/postgres/entrypoint/:/docker-entrypoint-initdb.d/
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d db_user && pg_isready -d db_cms" ]
+      start_period: 60s
+      interval: 10s
+      timeout: 60s
+      retries: 5
 
   liquibase-user:
     image: liquibase/liquibase:4.24-alpine
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
-      LIQUIBASE_COMMAND_USERNAME: ${HS_USER_POSTGRES_USERNAME}
-      LIQUIBASE_COMMAND_PASSWORD: ${HS_USER_POSTGRES_PASSWORD}
+      LIQUIBASE_COMMAND_USERNAME: ${HS_USER_POSTGRES_USERNAME:-hs}
+      LIQUIBASE_COMMAND_PASSWORD: ${HS_USER_POSTGRES_PASSWORD:-example}
       LIQUIBASE_COMMAND_URL : jdbc:postgresql://postgres:5432/db_user
     volumes:
       - ./services/liquibase/changelog:/liquibase/changelog
       - ./services/liquibase/liquibase.user.properties:/liquibase/liquibase.properties
     command: --defaults-file=/liquibase/liquibase.properties update
 
+  hs-user:
+    image: ${HS_USER_IMAGE:-mhws/hs-user:latest}
+    depends_on:
+      liquibase-user:
+        condition: service_completed_successfully
+    environment:
+      HS_USER_EUREKA_URI: http://eureka:8761/eureka
+      HS_USER_DATASOURCE_HOST: postgres
+      HS_USER_DATASOURCE_PORT: 5432
+      HS_USER_DATASOURCE_DATABASE: db_user
+      HS_USER_DATASOURCE_USERNAME: ${HS_USER_POSTGRES_USERNAME:-hs}
+      HS_USER_DATASOURCE_PASSWORD: ${HS_USER_POSTGRES_PASSWORD:-example}
+      HS_USER_JWT_SECRET_KEY: ${HS_USER_JWT_SECRET_KEY:-H3G7wpVdJNA9hsK4zaQm6uCUZqHLg2RFKs7D8M6J9mbf}
+      HS_USER_JWT_EXPIRATION: ${HS_USER_JWT_EXPIRATION:-86400000}
+
   liquibase-cms:
     image: liquibase/liquibase:4.24-alpine
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
-      LIQUIBASE_COMMAND_USERNAME: ${HS_CMS_POSTGRES_USERNAME}
-      LIQUIBASE_COMMAND_PASSWORD: ${HS_CMS_POSTGRES_PASSWORD}
+      LIQUIBASE_COMMAND_USERNAME: ${HS_CMS_POSTGRES_USERNAME:-hs}
+      LIQUIBASE_COMMAND_PASSWORD: ${HS_CMS_POSTGRES_PASSWORD:-example}
       LIQUIBASE_COMMAND_URL : jdbc:postgresql://postgres:5432/db_cms
     volumes:
       - ./services/liquibase/changelog:/liquibase/changelog
       - ./services/liquibase/liquibase.cms.properties:/liquibase/liquibase.properties
     command: --defaults-file=/liquibase/liquibase.properties update
 
-  liquibase-box:
-    image: liquibase/liquibase:4.24-alpine
-    depends_on:
-      - postgres
-    environment:
-      LIQUIBASE_COMMAND_USERNAME: ${HS_BOX_POSTGRES_USERNAME}
-      LIQUIBASE_COMMAND_PASSWORD: ${HS_BOX_POSTGRES_PASSWORD}
-      LIQUIBASE_COMMAND_URL : jdbc:postgresql://postgres:5432/db_box_office
-    volumes:
-      - ./services/liquibase/changelog:/liquibase/changelog
-      - ./services/liquibase/liquibase.box-office.properties:/liquibase/liquibase.properties
-    command: --defaults-file=/liquibase/liquibase.properties update
-
-  hs-user:
-    image: ${HS_USER_IMAGE:-mhws/hs-user:latest}
-    environment:
-      HS_USER_EUREKA_URI: http://eureka:8761/eureka
-      HS_USER_DATASOURCE_HOST: postgres
-      HS_USER_DATASOURCE_PORT: 5432
-      HS_USER_DATASOURCE_DATABASE: db_user
-      HS_USER_DATASOURCE_USERNAME: ${HS_USER_POSTGRES_USERNAME}
-      HS_USER_DATASOURCE_PASSWORD: ${HS_USER_POSTGRES_PASSWORD}
-      HS_USER_JWT_SECRET_KEY: ${HS_USER_JWT_SECRET_KEY}
-      HS_USER_JWT_EXPIRATION: ${HS_USER_JWT_EXPIRATION}
-
   hs-cms:
     image: ${HS_CMS_IMAGE:-mhws/hs-cms:latest}
+    depends_on:
+      liquibase-cms:
+        condition: service_completed_successfully
     environment:
       HS_CMS_EUREKA_URI: http://eureka:8761/eureka
       HS_CMS_DATASOURCE_HOST: postgres
       HS_CMS_DATASOURCE_PORT: 5432
       HS_CMS_DATASOURCE_DATABASE: db_cms
-      HS_CMS_DATASOURCE_USERNAME: ${HS_CMS_POSTGRES_USERNAME}
-      HS_CMS_DATASOURCE_PASSWORD: ${HS_CMS_POSTGRES_PASSWORD}
+      HS_CMS_DATASOURCE_USERNAME: ${HS_CMS_POSTGRES_USERNAME:-hs}
+      HS_CMS_DATASOURCE_PASSWORD: ${HS_CMS_POSTGRES_PASSWORD:-example}
+
+  liquibase-box:
+    image: liquibase/liquibase:4.24-alpine
+    depends_on:
+      - postgres
+    environment:
+      LIQUIBASE_COMMAND_USERNAME: ${HS_BOX_POSTGRES_USERNAME:-hs}
+      LIQUIBASE_COMMAND_PASSWORD: ${HS_BOX_POSTGRES_PASSWORD:-example}
+      LIQUIBASE_COMMAND_URL : jdbc:postgresql://postgres:5432/db_box_office
+    volumes:
+      - ./services/liquibase/changelog:/liquibase/changelog
+      - ./services/liquibase/liquibase.box-office.properties:/liquibase/liquibase.properties
+    command: --defaults-file=/liquibase/liquibase.properties update
 
   hs-box:
     image: ${HS_BOX_IMAGE:-mhws/hs-box:latest}
@@ -99,8 +104,18 @@ services:
       HS_BOX_OFFICE_DATASOURCE_HOST: postgres
       HS_BOX_OFFICE_DATASOURCE_PORT: 5432
       HS_BOX_OFFICE_DATASOURCE_DATABASE: db_box_office
-      HS_BOX_OFFICE_DATASOURCE_USERNAME: ${HS_BOX_POSTGRES_USERNAME}
-      HS_BOX_OFFICE_DATASOURCE_PASSWORD: ${HS_BOX_POSTGRES_PASSWORD}
+      HS_BOX_OFFICE_DATASOURCE_USERNAME: ${HS_BOX_POSTGRES_USERNAME:-hs}
+      HS_BOX_OFFICE_DATASOURCE_PASSWORD: ${HS_BOX_POSTGRES_PASSWORD:-example}
+
+  gateway:
+    build:
+      context: .
+      dockerfile: dockerfile
+    image: ${HS_GATEWAY_IMAGE:-mhws/hs-gateway:latest}
+    ports:
+      - ${HS_GATEWAY_PORT:-8370}:8762
+    environment:
+      HS_GATEWAY_EUREKA_URI: http://eureka:8761/eureka
 
 volumes:
   postgres-data:
