@@ -13,8 +13,8 @@ import reactivefeign.spring.config.ReactiveFeignClient;
 import reactor.core.publisher.Mono;
 
 @Component
-@ReactiveFeignClient(name="user", path="/api/v1")
-public interface UserServiceClient {
+@ReactiveFeignClient(name="users", path="/api/v1")
+public interface UsersServiceClient {
 
   @GetMapping("/users/current")
   @CircuitBreaker(name = "UserServiceCircuitBreaker", fallbackMethod = "fallback")
