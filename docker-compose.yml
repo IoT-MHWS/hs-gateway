@@ -22,7 +22,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
       - ./services/postgres/entrypoint/:/docker-entrypoint-initdb.d/
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -d db_user && pg_isready -d db_cms" ]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d db_user && pg_isready -U postgres -d db_cms && pg_isready -U postgres -d db_box_office" ]
       start_period: 60s
       interval: 10s
       timeout: 60s
@@ -43,7 +43,7 @@ services:
     command: --defaults-file=/liquibase/liquibase.properties update
 
   hs-user:
-    image: ${HS_USER_IMAGE:-mhws/hs-user:latest}
+    image: ${HS_USER_IMAGE:-mhws/hs-users:latest}
     depends_on:
       liquibase-user:
         condition: service_completed_successfully
@@ -87,7 +87,8 @@ services:
   liquibase-box:
     image: liquibase/liquibase:4.24-alpine
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     environment:
       LIQUIBASE_COMMAND_USERNAME: ${HS_BOX_POSTGRES_USERNAME:-hs}
       LIQUIBASE_COMMAND_PASSWORD: ${HS_BOX_POSTGRES_PASSWORD:-example}
@@ -98,7 +99,10 @@ services:
     command: --defaults-file=/liquibase/liquibase.properties update
 
   hs-box:
-    image: ${HS_BOX_IMAGE:-mhws/hs-box:latest}
+    image: ${HS_BOX_IMAGE:-mhws/hs-box-office:latest}
+    depends_on:
+      liquibase-box:
+        condition: service_completed_successfully
     environment:
       HS_BOX_OFFICE_EUREKA_URI: http://eureka:8761/eureka
       HS_BOX_OFFICE_DATASOURCE_HOST: postgres
@@ -106,6 +110,11 @@ services:
       HS_BOX_OFFICE_DATASOURCE_DATABASE: db_box_office
       HS_BOX_OFFICE_DATASOURCE_USERNAME: ${HS_BOX_POSTGRES_USERNAME:-hs}
       HS_BOX_OFFICE_DATASOURCE_PASSWORD: ${HS_BOX_POSTGRES_PASSWORD:-example}
+
+  hs-files:
+    image: ${HS_FILES_IMAGE:-mhws/hs-files:latest}
+    environment:
+      HS_FILES_EUREKA_URI: http://eureka:8761/eureka
 
   gateway:
     build:

@@ -23,6 +23,11 @@ spring:
     name: gateway
   cloud:
     gateway:
+      httpclient:
+        wiretap: true
+      httpserver:
+        wiretap: true
+
       routes:
         - id: users-auth
           uri: lb://users
@@ -40,6 +45,20 @@ spring:
             - Path=/users/api-docs
           filters:
             - RewritePath=/users/(?<path>.*), /$\{path}
+
+        - id: files-pictures
+          uri: lb://files
+          predicates:
+            - Path=/api/v1/paintings/{id}/files
+          filters:
+            - RewritePath=/api/v1/paintings/(?<id>.*)/files, /api/v1/paintings/$\{id}
+
+        - id: files-openapi
+          uri: lb://files
+          predicates:
+            - Path=/files/api-docs
+          filters:
+            - RewritePath=/files/(?<path>.*), /$\{path}
 
         - id: cms-artists
           uri: lb://cms
@@ -83,31 +102,30 @@ spring:
           filters:
             - RewritePath=/cms/(?<path>.*), /$\{path}
 
-        - id:
+        - id: box-office-orders
           uri: lb://box-office
           predicates:
             - Path=/api/v1/orders/**
           filters:
             - AuthFilter
 
-        - id:
+        - id: box-office-tickets
           uri: lb://box-office
           predicates:
             - Path=/api/v1/tickets/**
           filters:
             - AuthFilter
 
-        - id: cms-openapi
+        - id: box-office-openapi
           uri: lb://box-office
           predicates:
             - Path=/box-office/api-docs
           filters:
             - RewritePath=/box-office/(?<path>.*), /$\{path}
 
-# logging:
-#   level:
-#     org.springframework.cloud.gateway: DEBUG
-#     reactor.netty.http.client: DEBUG
-#    org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping: trace
-#    io.github.resilience4j: debug
-
+#logging:
+#  level:
+#    reactor.netty: DEBUG
+#    org.springframework.cloud.gateway: DEBUG
+#    org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping: DEBUG
+#    io.github.resilience4j: TRACE
