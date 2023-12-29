@@ -10,7 +10,7 @@ eureka:
           lower-case-service-id: true
   client:
     service-url:
-      defaultZone: ${HS_GATEWAY_EUREKA_URI:http://localhost:8761/eureka}
+      defaultZone: ${HS_GATEWAY_EUREKA_URI:http://localhost:8375/eureka}
 
 reactive:
   feign:
@@ -122,6 +122,21 @@ spring:
             - Path=/box-office/api-docs
           filters:
             - RewritePath=/box-office/(?<path>.*), /$\{path}
+
+springdoc:
+  api-docs:
+    path: "/api-docs"
+  swagger-ui:
+    path: "/swagger-ui"
+    urls: # explicitly set urls to match gateway filters
+      - url: /users/api-docs
+        name: API Users microservice
+      - url: /cms/api-docs
+        name: API CMS microservice
+      - url: /box-office/api-docs
+        name: API Box Office microservice
+      - url: /files/api-docs
+        name: API Files microservice
 
 #logging:
 #  level:
