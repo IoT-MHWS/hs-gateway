@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 
-set -e
-
 HS_USERNAME=$HS_BOX_POSTGRES_USERNAME
 HS_PASSWORD=$HS_BOX_POSTGRES_PASSWORD
 HS_DATABASE=$HS_BOX_POSTGRES_DATABASE
 
-psql -v ON_ERROR_STOP=1 --username "postgres" --dbname "postgres" <<-EOSQL
-	CREATE DATABASE $HS_DATABASE;
+psql --username "postgres" --dbname "postgres" <<-EOSQL
   CREATE USER $HS_USERNAME WITH PASSWORD '$HS_PASSWORD';
+EOSQL
+
+psql --username "postgres" --dbname "postgres" <<-EOSQL
+	CREATE DATABASE $HS_DATABASE;
   GRANT ALL PRIVILEGES ON DATABASE $HS_DATABASE TO $HS_USERNAME;
 EOSQL
 
-psql -v ON_ERROR_STOP=1 --username "postgres" --dbname "$HS_DATABASE" <<-EOSQL
+psql --username "postgres" --dbname "$HS_DATABASE" <<-EOSQL
     GRANT USAGE, CREATE ON SCHEMA public TO $HS_USERNAME;
 EOSQL
