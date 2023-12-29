@@ -137,6 +137,8 @@ springdoc:
         name: API Box Office microservice
       - url: /files/api-docs
         name: API Files microservice
+      - url: api-docs
+        name: API Gateway microservice
 
 #logging:
 #  level:
