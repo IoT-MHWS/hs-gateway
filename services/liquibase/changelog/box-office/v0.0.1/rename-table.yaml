@@ -1,8 +1,0 @@
-databaseChangeLog:
-  - changeSet:
-      id: 2
-      author: zubrailx
-      changes:
-        - renameTable:
-            oldTableName: "order"
-            newTableName: orders
