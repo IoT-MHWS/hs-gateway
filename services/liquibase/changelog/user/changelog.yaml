@@ -1,5 +1,0 @@
-databaseChangeLog:
-  - include:
-      file: v0.0.1/init.user-role.yaml
-  - include:
-      file: v0.0.1/default.user-roles.yaml
