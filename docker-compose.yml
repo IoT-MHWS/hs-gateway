@@ -28,8 +28,12 @@ services:
       timeout: 60s
       retries: 5
 
-  liquibase-user:
-    image: liquibase/liquibase:4.24-alpine
+  liquibase-users:
+    build:
+      context: services/liquibase
+      dockerfile: users.dockerfile
+      args:
+        BUNDLER_IMAGE: ${HS_USER_IMAGE:-mhws/hs-users:latest}
     depends_on:
       postgres:
         condition: service_healthy
@@ -37,15 +41,12 @@ services:
       LIQUIBASE_COMMAND_USERNAME: ${HS_USER_POSTGRES_USERNAME:-hs}
       LIQUIBASE_COMMAND_PASSWORD: ${HS_USER_POSTGRES_PASSWORD:-example}
       LIQUIBASE_COMMAND_URL : jdbc:postgresql://postgres:5432/db_user
-    volumes:
-      - ./services/liquibase/changelog:/liquibase/changelog
-      - ./services/liquibase/liquibase.user.properties:/liquibase/liquibase.properties
     command: --defaults-file=/liquibase/liquibase.properties update
 
-  hs-user:
+  hs-users:
     image: ${HS_USER_IMAGE:-mhws/hs-users:latest}
     depends_on:
-      liquibase-user:
+      liquibase-users:
         condition: service_completed_successfully
     environment:
       HS_USER_EUREKA_URI: http://eureka:8761/eureka
@@ -58,7 +59,11 @@ services:
       HS_USER_JWT_EXPIRATION: ${HS_USER_JWT_EXPIRATION:-86400000}
 
   liquibase-cms:
-    image: liquibase/liquibase:4.24-alpine
+    build:
+      context: services/liquibase
+      dockerfile: cms.dockerfile
+      args:
+        BUNDLER_IMAGE: ${HS_CMS_IMAGE:-mhws/hs-cms:latest}
     depends_on:
       postgres:
         condition: service_healthy
@@ -66,9 +71,6 @@ services:
       LIQUIBASE_COMMAND_USERNAME: ${HS_CMS_POSTGRES_USERNAME:-hs}
       LIQUIBASE_COMMAND_PASSWORD: ${HS_CMS_POSTGRES_PASSWORD:-example}
       LIQUIBASE_COMMAND_URL : jdbc:postgresql://postgres:5432/db_cms
-    volumes:
-      - ./services/liquibase/changelog:/liquibase/changelog
-      - ./services/liquibase/liquibase.cms.properties:/liquibase/liquibase.properties
     command: --defaults-file=/liquibase/liquibase.properties update
 
   hs-cms:
@@ -85,7 +87,11 @@ services:
       HS_CMS_DATASOURCE_PASSWORD: ${HS_CMS_POSTGRES_PASSWORD:-example}
 
   liquibase-box:
-    image: liquibase/liquibase:4.24-alpine
+    build:
+      context: services/liquibase
+      dockerfile: box-office.dockerfile
+      args:
+        BUNDLER_IMAGE: ${HS_BOX_IMAGE:-mhws/hs-box-office:latest}
     depends_on:
       postgres:
         condition: service_healthy
@@ -93,9 +99,6 @@ services:
       LIQUIBASE_COMMAND_USERNAME: ${HS_BOX_POSTGRES_USERNAME:-hs}
       LIQUIBASE_COMMAND_PASSWORD: ${HS_BOX_POSTGRES_PASSWORD:-example}
       LIQUIBASE_COMMAND_URL : jdbc:postgresql://postgres:5432/db_box_office
-    volumes:
-      - ./services/liquibase/changelog:/liquibase/changelog
-      - ./services/liquibase/liquibase.box-office.properties:/liquibase/liquibase.properties
     command: --defaults-file=/liquibase/liquibase.properties update
 
   hs-box:
