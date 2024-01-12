@@ -52,6 +52,7 @@ spring:
             - Path=/api/v1/paintings/{id}/files
           filters:
             - RewritePath=/api/v1/paintings/(?<id>.*)/files, /api/v1/paintings/$\{id}
+            - AuthFilter
 
         - id: files-openapi
           uri: lb://files
