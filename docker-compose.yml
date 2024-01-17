@@ -85,6 +85,8 @@ services:
       HS_CMS_DATASOURCE_DATABASE: db_cms
       HS_CMS_DATASOURCE_USERNAME: ${HS_CMS_POSTGRES_USERNAME:-hs}
       HS_CMS_DATASOURCE_PASSWORD: ${HS_CMS_POSTGRES_PASSWORD:-example}
+      HS_CMS_HAZELCAST_ADDRESSES: hazelcast:5701
+      HS_CMS_KAFKA_URI: kafka:9092
 
   liquibase-box:
     build:
@@ -118,16 +120,50 @@ services:
     image: ${HS_FILES_IMAGE:-mhws/hs-files:latest}
     environment:
       HS_FILES_EUREKA_URI: http://eureka:8761/eureka
+      HS_FILES_PAINTINGS_VOLUME: /pictures
+      HS_FILES_HAZELCAST_ADDRESSES: hazelcast:5701
+      HS_FILES_KAFKA_URI: kafka:9092
+    volumes:
+      - paintings:/paintings
 
   gateway:
     build:
       context: .
       dockerfile: dockerfile
-    image: ${HS_GATEWAY_IMAGE:-mhws/hs-gateway:latest}
+    # image: ${HS_GATEWAY_IMAGE:-mhws/hs-gateway:latest}
     ports:
       - ${HS_GATEWAY_PORT:-8370}:8762
     environment:
       HS_GATEWAY_EUREKA_URI: http://eureka:8761/eureka
 
+  hazelcast:
+    image: hazelcast/hazelcast:5.3-slim
+    environment:
+      JAVA_OPTS: "-Dhazelcast.config=/opt/hazelcast/config_ext/hazelcast.yaml"
+    ports:
+      - ${HS_HAZELCAST_PORT:-5701}:5701
+    volumes:
+      - ./services/hazelcast:/opt/hazelcast/config_ext
+
+  kafka:
+    image: docker.io/bitnami/kafka:3.6
+    ports:
+      - "9092:9094"
+    volumes:
+      - "kafka-data:/bitnami"
+    environment:
+      # KRaft settings
+      - KAFKA_CFG_NODE_ID=0
+      - KAFKA_CFG_PROCESS_ROLES=controller,broker
+      - KAFKA_CFG_CONTROLLER_QUORUM_VOTERS=0@kafka:9093
+      # Listeners
+      - KAFKA_CFG_LISTENERS=PLAINTEXT://:9092,CONTROLLER://:9093,EXTERNAL://:9094
+      - KAFKA_CFG_ADVERTISED_LISTENERS=PLAINTEXT://:9092,EXTERNAL://localhost:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+
 volumes:
   postgres-data:
+  paintings:
+  kafka-data:

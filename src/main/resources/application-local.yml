@@ -46,12 +46,12 @@ spring:
           filters:
             - RewritePath=/users/(?<path>.*), /$\{path}
 
-        - id: files-pictures
+        - id: files-pictures-inner
           uri: lb://files
           predicates:
-            - Path=/api/v1/paintings/{id}/files
+            - Path=/api/v1/paintings/{id}/files/**
           filters:
-            - RewritePath=/api/v1/paintings/(?<id>.*)/files, /api/v1/paintings/$\{id}
+            - RewritePath=/api/v1/paintings/(?<id>.*)/files(?<rest>/.*)?, /api/v1/paintings/${id}${rest}
             - AuthFilter
 
         - id: files-openapi
@@ -141,9 +141,9 @@ springdoc:
       - url: api-docs
         name: API Gateway microservice
 
-#logging:
-#  level:
-#    reactor.netty: DEBUG
-#    org.springframework.cloud.gateway: DEBUG
-#    org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping: DEBUG
-#    io.github.resilience4j: TRACE
+logging:
+ level:
+   reactor.netty: DEBUG
+   org.springframework.cloud.gateway: DEBUG
+   org.springframework.cloud.gateway.handler.RoutePredicateHandlerMapping: DEBUG
+   io.github.resilience4j: TRACE

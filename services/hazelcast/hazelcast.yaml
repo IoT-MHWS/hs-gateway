@@ -1,0 +1,12 @@
+hazelcast:
+  cluster-name: donatello
+  network:
+    port:
+      auto-increment: true
+      port: 5701
+      port-count: 20
+    join:
+      auto-detection:
+        enabled: true
+      multicast:
+        enabled: false
